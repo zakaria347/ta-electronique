@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — TA Électronique</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--navy:#0A1628;--cyan:#00C8FF;--card:#1A2940;--slate:#8A9BB5;--red:#ff4d4d;--green:#25D366;}
+body{font-family:'Segoe UI',sans-serif;background:var(--navy);color:#fff;min-height:100vh;}
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;}
+.login-box{background:var(--card);border:1px solid rgba(0,200,255,0.2);border-radius:20px;padding:2.5rem;width:340px;text-align:center;}
+.login-logo{font-weight:800;font-size:1.4rem;margin-bottom:0.3rem;}
+.login-logo span{color:var(--cyan);}
+.login-sub{color:var(--slate);font-size:0.82rem;margin-bottom:2rem;}
+.login-input{width:100%;background:#0A1628;border:1px solid rgba(0,200,255,0.2);border-radius:10px;padding:0.75rem 1rem;color:#fff;font-size:0.95rem;outline:none;margin-bottom:1rem;text-align:center;letter-spacing:3px;}
+.login-input:focus{border-color:var(--cyan);}
+.login-btn{width:100%;background:var(--cyan);color:#0A1628;border:none;border-radius:30px;padding:0.85rem;font-weight:700;font-size:0.95rem;cursor:pointer;}
+.login-err{color:var(--red);font-size:0.8rem;margin-top:0.5rem;display:none;}
+#admin-panel{display:none;}
+.topbar{background:rgba(10,22,40,0.97);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(0,200,255,0.12);position:sticky;top:0;z-index:50;}
+.topbar-logo{font-weight:800;font-size:1.1rem;}
+.topbar-logo span{color:var(--cyan);}
+.badge-admin{background:rgba(0,200,255,0.1);border:1px solid rgba(0,200,255,0.3);color:var(--cyan);font-size:0.72rem;padding:0.25rem 0.7rem;border-radius:20px;font-weight:600;}
+.btn-logout{background:transparent;border:1px solid rgba(255,255,255,0.15);color:var(--slate);border-radius:20px;padding:0.3rem 0.9rem;font-size:0.78rem;cursor:pointer;}
+.btn-logout:hover{border-color:var(--red);color:var(--red);}
+.admin-body{padding:2rem;max-width:900px;margin:0 auto;}
+.sec-title{font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;color:var(--cyan);font-weight:600;margin-bottom:1rem;margin-top:2rem;}
+.card{background:var(--card);border:1px solid rgba(0,200,255,0.1);border-radius:14px;padding:1.5rem;margin-bottom:1rem;}
+.card h3{font-size:0.95rem;font-weight:700;margin-bottom:1.2rem;}
+label{display:block;font-size:0.72rem;color:var(--slate);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.3rem;margin-top:0.8rem;}
+input[type=text],input[type=tel],input[type=email],input[type=password],textarea{width:100%;background:#0A1628;border:1px solid rgba(0,200,255,0.18);border-radius:9px;padding:0.65rem 0.9rem;color:#fff;font-size:0.88rem;outline:none;font-family:inherit;transition:border 0.2s;}
+input:focus,textarea:focus{border-color:var(--cyan);}
+textarea{resize:vertical;min-height:70px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.stats-row3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;}
+.svc-list{display:flex;flex-direction:column;gap:0.6rem;margin-bottom:1rem;}
+.svc-item{background:#0A1628;border:1px solid rgba(0,200,255,0.12);border-radius:10px;padding:0.8rem 1rem;display:flex;align-items:center;gap:0.8rem;}
+.svc-item-icon{font-size:1.2rem;width:30px;text-align:center;}
+.svc-item-info{flex:1;}
+.svc-item-name{font-size:0.88rem;font-weight:600;}
+.svc-item-desc{font-size:0.75rem;color:var(--slate);margin-top:0.2rem;}
+.btn-del{background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.3);color:var(--red);border-radius:8px;padding:0.3rem 0.7rem;font-size:0.75rem;cursor:pointer;flex-shrink:0;}
+.add-row{display:grid;grid-template-columns:55px 1fr 2fr auto;gap:0.6rem;align-items:end;margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.06);}
+.btn-add{background:rgba(0,200,255,0.1);border:1px solid rgba(0,200,255,0.3);color:var(--cyan);border-radius:9px;padding:0.65rem 1rem;font-size:0.82rem;cursor:pointer;white-space:nowrap;}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0.7rem;margin-top:0.7rem;}
+.photo-slot{border:1.5px dashed rgba(0,200,255,0.25);border-radius:10px;aspect-ratio:4/3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.3rem;cursor:pointer;position:relative;overflow:hidden;transition:border 0.2s;}
+.photo-slot:hover{border-color:var(--cyan);}
+.photo-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.photo-slot .lbl{font-size:0.65rem;color:var(--slate);text-align:center;padding:0 0.3rem;position:relative;z-index:1;}
+.photo-slot .ico{font-size:1.1rem;position:relative;z-index:1;}
+.photo-slot input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.del-photo{position:absolute;top:4px;right:4px;background:rgba(255,77,77,0.9);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:0.7rem;cursor:pointer;z-index:2;display:none;align-items:center;justify-content:center;}
+.has-img .del-photo{display:flex;}
+.has-img .lbl,.has-img .ico{display:none;}
+.photo-sec{margin-bottom:1.4rem;}
+.photo-sec-title{font-size:0.75rem;color:var(--cyan);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.5rem;}
+.dl-btn{display:flex;align-items:center;justify-content:center;gap:0.6rem;width:100%;background:var(--cyan);color:#0A1628;border:none;border-radius:30px;padding:1rem;font-weight:700;font-size:1rem;cursor:pointer;margin-top:1rem;transition:all 0.3s;}
+.dl-btn:hover{background:#00a8d8;}
+.ok-msg{background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.3);color:var(--green);border-radius:10px;padding:0.8rem;font-size:0.85rem;text-align:center;margin-top:1rem;display:none;}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">TA <span>Électronique</span></div>
+    <div class="login-sub">Panneau d'administration</div>
+    <input class="login-input" type="password" id="pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">🔐 Connexion</button>
+    <div class="login-err" id="lerr">Mot de passe incorrect</div>
+  </div>
+</div>
+
+<div id="admin-panel">
+  <div class="topbar">
+    <div class="topbar-logo">TA <span>Électronique</span> — Admin</div>
+    <div style="display:flex;gap:0.8rem;align-items:center;">
+      <span class="badge-admin">🛡️ Admin</span>
+      <button class="btn-logout" onclick="logout()">Déconnexion</button>
+    </div>
+  </div>
+  <div class="admin-body">
+
+    <div class="sec-title">📋 Informations générales</div>
+    <div class="card">
+      <h3>👤 Contact & Identité</h3>
+      <div class="row2">
+        <div><label>Nom du responsable</label><input type="text" id="f-nom" value="Samy Benchelef"></div>
+        <div><label>Téléphone / WhatsApp</label><input type="tel" id="f-tel" value="0560053182"></div>
+      </div>
+      <label>Email</label><input type="email" id="f-email" value="samybkk@hotmail.fr">
+      <label>Description hero</label>
+      <textarea id="f-desc">Expertise en réseau informatique, vidéosurveillance IP, téléphonie et téledistribution. Des solutions fiables pour votre entreprise ou domicile — intervention rapide, résultat garanti.</textarea>
+    </div>
+
+    <div class="sec-title">📊 Statistiques</div>
+    <div class="card">
+      <h3>🔢 Chiffres clés</h3>
+      <div class="stats-row3">
+        <div><label>Clients satisfaits</label><input type="text" id="s1" value="+200"></div>
+        <div><label>Années expérience</label><input type="text" id="s2" value="10+"></div>
+        <div><label>Intervention</label><input type="text" id="s3" value="24h"></div>
+      </div>
+    </div>
+
+    <div class="sec-title">🔧 Services</div>
+    <div class="card">
+      <h3>📝 Liste des services</h3>
+      <div class="svc-list" id="svc-list"></div>
+      <div class="add-row">
+        <div><label>Icône</label><input type="text" id="ni" placeholder="🔌" style="text-align:center;"></div>
+        <div><label>Nom</label><input type="text" id="nn" placeholder="Nom du service"></div>
+        <div><label>Description</label><input type="text" id="nd" placeholder="Description courte..."></div>
+        <div><label>&nbsp;</label><button class="btn-add" onclick="addSvc()">+ Ajouter</button></div>
+      </div>
+    </div>
+
+    <div class="sec-title">🖼️ Photos des réalisations</div>
+    <div class="card">
+      <h3>📸 Photos par service</h3>
+      <div id="photo-secs"></div>
+    </div>
+
+    <div class="sec-title">🚀 Publier le site</div>
+    <div class="card">
+      <h3>⚡ Publier directement sur Netlify</h3>
+      <p style="color:var(--slate);font-size:0.83rem;line-height:1.6;margin-bottom:1rem;">Cliquez sur le bouton — le site se met à jour automatiquement en quelques secondes.</p>
+      <button class="dl-btn" onclick="publishSite()" id="pub-btn">🚀 Publier sur Netlify</button>
+      <div id="pub-status" style="margin-top:1rem;border-radius:10px;padding:0.8rem;font-size:0.85rem;text-align:center;display:none;"></div>
+      <div style="margin-top:1.5rem;border-top:1px solid rgba(255,255,255,0.06);padding-top:1rem;">
+        <p style="color:var(--slate);font-size:0.78rem;">Vous pouvez aussi télécharger le fichier manuellement :</p>
+        <button style="background:transparent;border:1px solid rgba(0,200,255,0.25);color:var(--cyan);border-radius:20px;padding:0.5rem 1.2rem;font-size:0.8rem;cursor:pointer;margin-top:0.5rem;" onclick="dlSite()">⬇️ Télécharger uniquement</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var PASS = 'admin1234';
+
+var svcs = [
+  {icon:'🌐', name:'Réseau Informatique', desc:'Installation et configuration de réseaux LAN/WAN, Wi-Fi, câblage structuré et maintenance préventive.'},
+  {icon:'📷', name:'Vidéosurveillance IP', desc:'Caméras IP haute définition, systèmes NVR, accès à distance et surveillance en temps réel 24h/24.'},
+  {icon:'📞', name:'Réseau Téléphonique', desc:'Déploiement de PABX, téléphonie IP (VoIP), câblage téléphonique et systèmes d\'interphonie.'},
+  {icon:'📡', name:'Téledistribution', desc:'Réseaux câblés pour la distribution TV collective — hôtels, résidences et espaces professionnels.'},
+  {icon:'🔥', name:'Détection Incendie', desc:'Installation de systèmes de détection et d\'alarme incendie pour locaux professionnels et résidentiels.'},
+  {icon:'💡', name:'Fibre Optique', desc:'Installation et raccordement de réseaux fibre optique pour une connexion ultra-rapide et fiable.'},
+  {icon:'🔊', name:'Sonorisation', desc:'Installation de systèmes de sonorisation professionnelle pour salles, commerces et espaces publics.'}
+];
+
+var photos = {};
+svcs.forEach(function(s){ photos[s.name] = []; });
+
+function doLogin(){
+  if(document.getElementById('pwd').value === PASS){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('admin-panel').style.display='block';
+    renderSvcs(); renderPhotos();
+  } else {
+    document.getElementById('lerr').style.display='block';
+  }
+}
+function logout(){
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('admin-panel').style.display='none';
+  document.getElementById('pwd').value='';
+}
+
+function renderSvcs(){
+  var el = document.getElementById('svc-list');
+  el.innerHTML = '';
+  svcs.forEach(function(s,i){
+    var d = document.createElement('div');
+    d.className = 'svc-item';
+    d.innerHTML = '<span class="svc-item-icon">'+s.icon+'</span>'
+      +'<div class="svc-item-info"><div class="svc-item-name">'+s.name+'</div><div class="svc-item-desc">'+s.desc+'</div></div>'
+      +'<button class="btn-del" onclick="delSvc('+i+')">🗑 Supprimer</button>';
+    el.appendChild(d);
+  });
+}
+
+function delSvc(i){
+  if(confirm('Supprimer "'+svcs[i].name+'" ?')){
+    delete photos[svcs[i].name];
+    svcs.splice(i,1);
+    renderSvcs(); renderPhotos();
+  }
+}
+
+function addSvc(){
+  var icon = document.getElementById('ni').value.trim()||'🔌';
+  var name = document.getElementById('nn').value.trim();
+  var desc = document.getElementById('nd').value.trim();
+  if(!name){ alert('Entrez un nom'); return; }
+  svcs.push({icon:icon,name:name,desc:desc});
+  photos[name]=[];
+  document.getElementById('ni').value='';
+  document.getElementById('nn').value='';
+  document.getElementById('nd').value='';
+  renderSvcs(); renderPhotos();
+}
+
+function renderPhotos(){
+  var container = document.getElementById('photo-secs');
+  container.innerHTML='';
+  svcs.forEach(function(s){
+    if(!photos[s.name]) photos[s.name]=[];
+    var sec = document.createElement('div');
+    sec.className = 'photo-sec';
+    sec.innerHTML = '<div class="photo-sec-title">'+s.icon+' '+s.name+'</div>';
+    var grid = document.createElement('div');
+    grid.className = 'photo-grid';
+    photos[s.name].forEach(function(b64,pi){
+      var slot = document.createElement('div');
+      slot.className = 'photo-slot has-img';
+      slot.innerHTML = '<img src="'+b64+'">'
+        +'<button class="del-photo" onclick="delPhoto(\''+s.name+'\','+pi+',event)">✕</button>';
+      grid.appendChild(slot);
+    });
+    var add = document.createElement('div');
+    add.className = 'photo-slot';
+    add.innerHTML = '<span class="ico">➕</span><span class="lbl">Ajouter</span>'
+      +'<input type="file" accept="image/*" onchange="addPhoto(\''+s.name+'\',this)">';
+    grid.appendChild(add);
+    sec.appendChild(grid);
+    container.appendChild(sec);
+  });
+}
+
+function addPhoto(name, input){
+  var file = input.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    if(!photos[name]) photos[name]=[];
+    // Resize before storing
+    var img = new Image();
+    img.onload = function(){
+      var canvas = document.createElement('canvas');
+      var max = 800;
+      var w = img.width, h = img.height;
+      if(w>max){h=Math.round(h*max/w);w=max;}
+      if(h>max){w=Math.round(w*max/h);h=max;}
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      photos[name].push(canvas.toDataURL('image/jpeg',0.82));
+      renderPhotos();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function delPhoto(name, idx, e){
+  e.stopPropagation();
+  photos[name].splice(idx,1);
+  renderPhotos();
+}
+
+function esc(str){
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function buildHTML(){
+  var nom   = document.getElementById('f-nom').value.trim();
+  var tel   = document.getElementById('f-tel').value.trim();
+  var email = document.getElementById('f-email').value.trim();
+  var desc  = document.getElementById('f-desc').value.trim();
+  var s1    = document.getElementById('s1').value.trim();
+  var s2    = document.getElementById('s2').value.trim();
+  var s3    = document.getElementById('s3').value.trim();
+  var wa    = 'https://wa.me/213'+tel.replace(/^0/,'');
+  var nom   = document.getElementById('f-nom').value.trim();
+  var tel   = document.getElementById('f-tel').value.trim();
+  var email = document.getElementById('f-email').value.trim();
+  var desc  = document.getElementById('f-desc').value.trim();
+  var s1    = document.getElementById('s1').value.trim();
+  var s2    = document.getElementById('s2').value.trim();
+  var s3    = document.getElementById('s3').value.trim();
+  var wa    = 'https://wa.me/213'+tel.replace(/^0/,'');
+
+  var svcsCards = '';
+  svcs.forEach(function(s){
+    svcsCards += '<div class="svc-card"><div class="svc-icon">'+s.icon+'</div>'
+      +'<div class="svc-name">'+esc(s.name)+'</div>'
+      +'<div class="svc-desc">'+esc(s.desc)+'</div></div>';
+  });
+
+  var formSvcs = '';
+  svcs.forEach(function(s){
+    formSvcs += '<div class="svc-btn" onclick="toggleSvc(this,\''+s.name+'\')">'
+      +'<div class="s-icon">'+s.icon+'</div>'
+      +'<div class="s-name">'+esc(s.name)+'</div></div>';
+  });
+
+  var photosHTML = '';
+  svcs.forEach(function(s){
+    var imgs = photos[s.name]||[];
+    if(!imgs.length) return;
+    photosHTML += '<div class="photo-section">'
+      +'<div class="photo-section-title">'+s.icon+' '+esc(s.name)+'</div>'
+      +'<div class="photo-row">';
+    imgs.forEach(function(b64){
+      photosHTML += '<div class="photo-thumb" onclick="openLB(this)"><img src="'+b64+'" alt="'+esc(s.name)+'"></div>';
+    });
+    photosHTML += '</div></div>';
+  });
+  if(!photosHTML) photosHTML = '<p style="color:#8A9BB5;font-size:0.85rem;">Photos à venir.</p>';
+
+  var waIcon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>';
+
+  var html = '<!DOCTYPE html>\n<html lang="fr">\n<head>\n'
+    +'<meta charset="UTF-8">\n'
+    +'<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
+    +'<title>TA Électronique — Réseau, Vidéosurveillance, Téléphonie</title>\n'
+    +'<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">\n'
+    +'<style>\n'
+    +'*{margin:0;padding:0;box-sizing:border-box;}\n'
+    +':root{--navy:#0A1628;--cyan:#00C8FF;--cyan2:#0099CC;--light:#F0F4FA;--slate:#8A9BB5;--white:#FFFFFF;--card:#1A2940;}\n'
+    +'html{scroll-behavior:smooth;}\n'
+    +'body{font-family:\'Inter\',sans-serif;background:var(--navy);color:var(--white);overflow-x:hidden;}\n'
+    +'nav{display:flex;justify-content:space-between;align-items:center;padding:1rem 2.5rem;background:rgba(10,22,40,0.97);position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(0,200,255,0.12);}\n'
+    +'.logo{font-family:\'Poppins\',sans-serif;font-weight:800;font-size:1.4rem;color:var(--white);text-decoration:none;}\n'
+    +'.logo span{color:var(--cyan);}\n'
+    +'.nav-links{display:flex;gap:1.8rem;list-style:none;}\n'
+    +'.nav-links a{color:var(--slate);text-decoration:none;font-size:0.85rem;font-weight:500;transition:color 0.3s;}\n'
+    +'.nav-links a:hover{color:var(--cyan);}\n'
+    +'.nav-wa{background:var(--cyan);color:var(--navy);padding:0.5rem 1.2rem;border-radius:25px;text-decoration:none;font-weight:700;font-size:0.82rem;display:flex;align-items:center;gap:0.4rem;transition:all 0.3s;}\n'
+    +'.nav-wa:hover{background:#00a8d8;}\n'
+    +'.hero{min-height:92vh;display:flex;flex-direction:column;justify-content:center;padding:4rem 2.5rem 3rem;position:relative;overflow:hidden;}\n'
+    +'.hero::before{content:\'\';position:absolute;top:-120px;right:-180px;width:650px;height:650px;background:radial-gradient(circle,rgba(0,200,255,0.07) 0%,transparent 70%);pointer-events:none;}\n'
+    +'.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:rgba(0,200,255,0.1);border:1px solid rgba(0,200,255,0.3);padding:0.3rem 0.9rem;border-radius:20px;font-size:0.75rem;color:var(--cyan);font-weight:500;letter-spacing:1px;text-transform:uppercase;margin-bottom:1.5rem;width:fit-content;}\n'
+    +'.pulse{width:7px;height:7px;background:var(--cyan);border-radius:50%;animation:pulse 2s infinite;flex-shrink:0;}\n'
+    +'@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(1.5);}}\n'
+    +'.hero h1{font-family:\'Poppins\',sans-serif;font-size:clamp(2.2rem,5vw,3.8rem);font-weight:800;line-height:1.1;margin-bottom:1.2rem;}\n'
+    +'.hero h1 .accent{color:var(--cyan);}\n'
+    +'.hero p{font-size:1rem;color:var(--slate);max-width:560px;line-height:1.75;margin-bottom:2.2rem;}\n'
+    +'.hero-btns{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:3rem;}\n'
+    +'.btn-primary{background:var(--cyan);color:var(--navy);padding:0.8rem 2rem;border-radius:30px;text-decoration:none;font-weight:700;font-size:0.9rem;display:inline-flex;align-items:center;gap:0.5rem;transition:all 0.3s;}\n'
+    +'.btn-primary:hover{background:#00a8d8;transform:translateY(-2px);}\n'
+    +'.btn-outline{border:1.5px solid rgba(0,200,255,0.4);color:var(--cyan);padding:0.8rem 2rem;border-radius:30px;text-decoration:none;font-weight:600;font-size:0.9rem;transition:all 0.3s;}\n'
+    +'.btn-outline:hover{background:rgba(0,200,255,0.08);}\n'
+    +'.stats-row{display:flex;gap:2.5rem;flex-wrap:wrap;}\n'
+    +'.stat-num{font-family:\'Poppins\',sans-serif;font-size:1.9rem;font-weight:800;color:var(--cyan);}\n'
+    +'.stat-lbl{font-size:0.75rem;color:var(--slate);margin-top:0.1rem;}\n'
+    +'.signal-deco{display:flex;align-items:flex-end;gap:3px;position:absolute;bottom:2.5rem;right:2.5rem;opacity:0.25;}\n'
+    +'.signal-deco span{background:var(--cyan);border-radius:2px;width:6px;animation:sig 1.6s infinite ease-in-out;}\n'
+    +'.signal-deco span:nth-child(1){height:8px;animation-delay:0s;}\n'
+    +'.signal-deco span:nth-child(2){height:15px;animation-delay:0.2s;}\n'
+    +'.signal-deco span:nth-child(3){height:22px;animation-delay:0.4s;}\n'
+    +'.signal-deco span:nth-child(4){height:30px;animation-delay:0.6s;}\n'
+    +'@keyframes sig{0%,100%{opacity:1;}50%{opacity:0.25;}}\n'
+    +'.section{padding:4rem 2.5rem;}\n'
+    +'.section-label{font-size:0.72rem;text-transform:uppercase;letter-spacing:2.5px;color:var(--cyan);font-weight:600;margin-bottom:0.5rem;}\n'
+    +'.section-title{font-family:\'Poppins\',sans-serif;font-size:2rem;font-weight:700;margin-bottom:0.6rem;}\n'
+    +'.section-sub{color:var(--slate);font-size:0.9rem;margin-bottom:2.5rem;line-height:1.6;}\n'
+    +'.services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1.2rem;}\n'
+    +'.svc-card{background:var(--card);border:1px solid rgba(0,200,255,0.1);border-radius:16px;padding:1.6rem;transition:all 0.3s;position:relative;overflow:hidden;}\n'
+    +'.svc-card::before{content:\'\';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),rgba(0,200,255,0));transform:scaleX(0);transform-origin:left;transition:transform 0.4s;}\n'
+    +'.svc-card:hover{border-color:rgba(0,200,255,0.35);transform:translateY(-5px);}\n'
+    +'.svc-card:hover::before{transform:scaleX(1);}\n'
+    +'.svc-icon{width:46px;height:46px;background:rgba(0,200,255,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;font-size:1.4rem;}\n'
+    +'.svc-name{font-family:\'Poppins\',sans-serif;font-weight:700;font-size:1rem;margin-bottom:0.5rem;}\n'
+    +'.svc-desc{font-size:0.8rem;color:var(--slate);line-height:1.65;}\n'
+    +'.section-light{background:var(--light);padding:4rem 2.5rem;}\n'
+    +'.section-light .section-label{color:var(--cyan2);}\n'
+    +'.section-light .section-title{color:var(--navy);}\n'
+    +'.section-light .section-sub{color:#5a7a99;}\n'
+    +'.photo-section{margin-bottom:1.5rem;}\n'
+    +'.photo-section-title{font-family:\'Poppins\',sans-serif;font-weight:700;font-size:0.85rem;color:var(--cyan);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:0.7rem;display:flex;align-items:center;gap:0.5rem;}\n'
+    +'.photo-section-title::after{content:\'\';flex:1;height:1px;background:rgba(0,200,255,0.15);}\n'
+    +'.photo-row{display:flex;gap:0.8rem;overflow-x:auto;padding-bottom:0.3rem;}\n'
+    +'.photo-row::-webkit-scrollbar{height:4px;}\n'
+    +'.photo-row::-webkit-scrollbar-thumb{background:rgba(0,200,255,0.3);border-radius:2px;}\n'
+    +'.photo-row .photo-thumb{flex:0 0 200px;height:150px;border-radius:12px;overflow:hidden;cursor:pointer;}\n'
+    +'.photo-row .photo-thumb img{width:100%;height:100%;object-fit:cover;transition:transform 0.3s;}\n'
+    +'.photo-row .photo-thumb:hover img{transform:scale(1.05);}\n'
+    +'.reservation-section{padding:4rem 2.5rem;background:#071020;}\n'
+    +'.res-inner{display:grid;grid-template-columns:1fr 1fr;gap:3rem;max-width:1000px;margin:0 auto;align-items:start;}\n'
+    +'.res-info p{color:var(--slate);font-size:0.88rem;line-height:1.75;margin-top:0.8rem;margin-bottom:2rem;}\n'
+    +'.info-item{display:flex;align-items:center;gap:0.8rem;margin-bottom:1rem;}\n'
+    +'.info-icon{width:38px;height:38px;background:rgba(0,200,255,0.1);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}\n'
+    +'.info-text strong{display:block;color:var(--white);font-weight:600;font-size:0.85rem;}\n'
+    +'.info-text span{color:var(--slate);font-size:0.8rem;}\n'
+    +'.form-card{background:var(--card);border:1px solid rgba(0,200,255,0.12);border-radius:20px;padding:2rem;}\n'
+    +'.step-indicator{display:flex;gap:8px;margin-bottom:1.8rem;}\n'
+    +'.dot{width:8px;height:8px;border-radius:50%;background:rgba(0,200,255,0.18);transition:all 0.3s;}\n'
+    +'.dot.done{background:var(--cyan);}\n'
+    +'.dot.active{background:var(--cyan);transform:scale(1.45);}\n'
+    +'.step{display:none;}\n'
+    +'.step.active{display:block;}\n'
+    +'.form-title{font-family:\'Poppins\',sans-serif;font-weight:700;font-size:1rem;margin-bottom:1.3rem;color:var(--white);}\n'
+    +'label{display:block;font-size:0.72rem;color:var(--slate);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.35rem;}\n'
+    +'input[type=text],input[type=tel]{width:100%;background:#0A1628;border:1px solid rgba(0,200,255,0.18);border-radius:10px;padding:0.72rem 1rem;color:var(--white);font-size:0.9rem;outline:none;transition:border 0.2s;margin-bottom:1rem;font-family:\'Inter\',sans-serif;}\n'
+    +'input[type=text]:focus,input[type=tel]:focus{border-color:var(--cyan);}\n'
+    +'input::placeholder{color:#3a5070;}\n'
+    +'textarea{width:100%;background:#0A1628;border:1px solid rgba(0,200,255,0.18);border-radius:10px;padding:0.72rem 1rem;color:var(--white);font-size:0.85rem;outline:none;resize:none;height:90px;font-family:\'Inter\',sans-serif;transition:border 0.2s;margin-bottom:1rem;}\n'
+    +'textarea:focus{border-color:var(--cyan);}\n'
+    +'textarea::placeholder{color:#3a5070;}\n'
+    +'.svc-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:1.5rem;}\n'
+    +'.svc-btn{background:#0A1628;border:1.5px solid rgba(0,200,255,0.12);border-radius:12px;padding:0.8rem;cursor:pointer;transition:all 0.25s;text-align:left;}\n'
+    +'.svc-btn:hover{border-color:rgba(0,200,255,0.45);}\n'
+    +'.svc-btn.selected{border-color:var(--cyan);background:rgba(0,200,255,0.07);}\n'
+    +'.svc-btn .s-icon{font-size:1.2rem;margin-bottom:0.3rem;}\n'
+    +'.svc-btn .s-name{font-size:0.78rem;font-weight:700;color:var(--white);}\n'
+    +'.err{color:#ff6b6b;font-size:0.73rem;margin-top:-0.7rem;margin-bottom:0.7rem;display:none;}\n'
+    +'.btn-next{width:100%;background:var(--cyan);color:var(--navy);border:none;border-radius:30px;padding:0.85rem;font-weight:700;font-size:0.9rem;cursor:pointer;transition:all 0.3s;font-family:\'Inter\',sans-serif;}\n'
+    +'.btn-next:hover{background:#00a8d8;}\n'
+    +'.btn-back{background:transparent;border:1px solid rgba(0,200,255,0.25);color:var(--slate);border-radius:30px;padding:0.65rem 1.4rem;font-size:0.82rem;cursor:pointer;margin-bottom:0.8rem;transition:all 0.2s;font-family:\'Inter\',sans-serif;}\n'
+    +'.btn-back:hover{border-color:var(--cyan);color:var(--cyan);}\n'
+    +'.summary-box{background:#0A1628;border-radius:12px;padding:1rem;margin-bottom:1.2rem;border:1px solid rgba(0,200,255,0.1);}\n'
+    +'.sum-row{display:flex;justify-content:space-between;align-items:flex-start;padding:0.45rem 0;border-bottom:1px solid rgba(255,255,255,0.05);}\n'
+    +'.sum-row:last-child{border-bottom:none;}\n'
+    +'.sum-label{font-size:0.73rem;color:var(--slate);}\n'
+    +'.sum-val{font-size:0.82rem;font-weight:600;color:var(--white);text-align:right;max-width:65%;}\n'
+    +'.pills{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;max-width:65%;}\n'
+    +'.pill{background:rgba(0,200,255,0.1);border:1px solid rgba(0,200,255,0.3);color:var(--cyan);font-size:0.67rem;padding:2px 8px;border-radius:20px;}\n'
+    +'.wa-btn{display:flex;align-items:center;justify-content:center;gap:0.6rem;background:#25D366;color:#fff;border:none;border-radius:30px;padding:0.9rem;font-weight:700;font-size:0.9rem;cursor:pointer;width:100%;transition:all 0.3s;font-family:\'Inter\',sans-serif;}\n'
+    +'.wa-btn:hover{background:#1db554;}\n'
+    +'.success-inner{text-align:center;padding:1rem 0;}\n'
+    +'.check-circle{width:64px;height:64px;background:rgba(0,200,255,0.1);border:2px solid var(--cyan);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.8rem;}\n'
+    +'.contact-section{padding:4rem 2.5rem;background:var(--navy);}\n'
+    +'.contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;max-width:900px;margin:2rem auto 0;}\n'
+    +'.contact-card-item{background:var(--card);border:1px solid rgba(0,200,255,0.1);border-radius:14px;padding:1.3rem;display:flex;align-items:center;gap:1rem;}\n'
+    +'.c-icon{width:42px;height:42px;background:rgba(0,200,255,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}\n'
+    +'.c-lbl{font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:0.5px;}\n'
+    +'.c-val{font-size:0.9rem;font-weight:600;color:var(--white);margin-top:0.1rem;}\n'
+    +'footer{background:#071020;padding:1.5rem 2.5rem;border-top:1px solid rgba(0,200,255,0.08);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;}\n'
+    +'footer p{color:var(--slate);font-size:0.78rem;}\n'
+    +'.lb-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);z-index:9999;align-items:center;justify-content:center;}\n'
+    +'.lb-overlay.open{display:flex;}\n'
+    +'.lb-overlay img{max-width:92vw;max-height:88vh;border-radius:12px;}\n'
+    +'.lb-close{position:absolute;top:1.2rem;right:1.5rem;color:#fff;font-size:2rem;cursor:pointer;}\n'
+    +'.photo-thumb{cursor:pointer;overflow:hidden;border-radius:14px;transition:transform 0.2s;}\n'
+    +'.photo-thumb:hover{transform:scale(1.03);}\n'
+    +'.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block;}\n'
+    +'@media(max-width:720px){'
+    +'nav{padding:1rem 1.2rem;} .nav-links{display:none;}'
+    +'.hero,.section,.reservation-section,.contact-section,.section-light{padding:3rem 1.2rem;}'
+    +'.res-inner{grid-template-columns:1fr;}'
+    +'footer{flex-direction:column;text-align:center;}}\n'
+    +'</style>\n</head>\n<body>\n'
+    +'<nav>\n'
+    +'  <a href="#" class="logo">TA <span>Électronique</span></a>\n'
+    +'  <ul class="nav-links">\n'
+    +'    <li><a href="#services">Services</a></li>\n'
+    +'    <li><a href="#realisations">Réalisations</a></li>\n'
+    +'    <li><a href="#reservation">Réservation</a></li>\n'
+    +'    <li><a href="#contact">Contact</a></li>\n'
+    +'  </ul>\n'
+    +'  <a href="'+wa+'" class="nav-wa">'+waIcon+' WhatsApp</a>\n'
+    +'</nav>\n\n'
+    +'<section class="hero">\n'
+    +'  <div class="hero-badge"><span class="pulse"></span>Services professionnels</div>\n'
+    +'  <h1>Solutions <span class="accent">Réseau</span> &amp;<br>Surveillance <span class="accent">IP</span></h1>\n'
+    +'  <p>'+esc(desc)+'</p>\n'
+    +'  <div class="hero-btns">\n'
+    +'    <a href="#reservation" class="btn-primary">📅 Demander un service</a>\n'
+    +'    <a href="#services" class="btn-outline">Voir nos services</a>\n'
+    +'  </div>\n'
+    +'  <div class="stats-row">\n'
+    +'    <div class="stat"><div class="stat-num">'+s1+'</div><div class="stat-lbl">Clients satisfaits</div></div>\n'
+    +'    <div class="stat"><div class="stat-num">'+s2+'</div><div class="stat-lbl">Ans d\'expérience</div></div>\n'
+    +'    <div class="stat"><div class="stat-num">'+s3+'</div><div class="stat-lbl">Intervention rapide</div></div>\n'
+    +'  </div>\n'
+    +'  <div class="signal-deco"><span></span><span></span><span></span><span></span></div>\n'
+    +'</section>\n\n'
+    +'<section class="section" id="services">\n'
+    +'  <div class="section-label">Ce que nous proposons</div>\n'
+    +'  <div class="section-title">Nos Services</div>\n'
+    +'  <div class="section-sub">Des solutions complètes adaptées à vos besoins professionnels et résidentiels.</div>\n'
+    +'  <div class="services-grid">'+svcsCards+'</div>\n'
+    +'</section>\n\n'
+    +'<section class="section-light" id="realisations">\n'
+    +'  <div class="section-label">Notre travail</div>\n'
+    +'  <div class="section-title">Réalisations</div>\n'
+    +'  <div class="section-sub">Quelques exemples de nos installations et projets réalisés.</div>\n'
+    +'  <div>'+photosHTML+'</div>\n'
+    +'</section>\n\n'
+    +'<section class="reservation-section" id="reservation">\n'
+    +'  <div style="max-width:1000px;margin:0 auto;text-align:center;">\n'
+    +'    <div class="section-label">Prise en charge rapide</div>\n'
+    +'    <div class="section-title">Demande de Service</div>\n'
+    +'    <div class="section-sub" style="max-width:500px;margin:0 auto 2.5rem;">Remplissez le formulaire — votre demande sera envoyée directement sur WhatsApp.</div>\n'
+    +'  </div>\n'
+    +'  <div class="res-inner">\n'
+    +'    <div class="res-info">\n'
+    +'      <div class="section-label">Pourquoi nous choisir</div>\n'
+    +'      <div class="section-title" style="font-size:1.5rem;">Réponse garantie<br>sous 24h</div>\n'
+    +'      <p>Nous intervenons rapidement partout. Devis gratuit, installation soignée et suivi après service.</p>\n'
+    +'      <div class="info-item"><div class="info-icon">⚡</div><div class="info-text"><strong>Intervention rapide</strong><span>Disponible 6j/7</span></div></div>\n'
+    +'      <div class="info-item"><div class="info-icon">🛡️</div><div class="info-text"><strong>Matériel garanti</strong><span>Équipements certifiés</span></div></div>\n'
+    +'      <div class="info-item"><div class="info-icon">💬</div><div class="info-text"><strong>Suivi WhatsApp</strong><span>Contact direct avec '+esc(nom)+'</span></div></div>\n'
+    +'      <div class="info-item"><div class="info-icon">💰</div><div class="info-text"><strong>Devis gratuit</strong><span>Sans engagement</span></div></div>\n'
+    +'    </div>\n'
+    +'    <div class="form-card">\n'
+    +'      <div class="step-indicator"><div class="dot active" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div><div class="dot" id="d4"></div></div>\n'
+    +'      <div class="step active" id="s1">\n'
+    +'        <div class="form-title">Vos informations</div>\n'
+    +'        <label>Nom</label><input type="text" id="nom" placeholder="Votre nom">\n'
+    +'        <div class="err" id="err-nom">Veuillez saisir votre nom.</div>\n'
+    +'        <label>Prénom</label><input type="text" id="prenom" placeholder="Votre prénom">\n'
+    +'        <div class="err" id="err-prenom">Veuillez saisir votre prénom.</div>\n'
+    +'        <label>Téléphone</label><input type="tel" id="tel" placeholder="Ex : 0560000000">\n'
+    +'        <div class="err" id="err-tel">Numéro invalide.</div>\n'
+    +'        <button class="btn-next" onclick="goStep2()">Continuer →</button>\n'
+    +'      </div>\n'
+    +'      <div class="step" id="s2">\n'
+    +'        <div class="form-title">Quel service souhaitez-vous ?</div>\n'
+    +'        <div class="svc-grid">'+formSvcs+'</div>\n'
+    +'        <div class="err" id="err-svc">Choisissez au moins un service.</div>\n'
+    +'        <button class="btn-back" onclick="goStep(1)">← Retour</button>\n'
+    +'        <button class="btn-next" onclick="goStep3()">Continuer →</button>\n'
+    +'      </div>\n'
+    +'      <div class="step" id="s3">\n'
+    +'        <div class="form-title">Décrivez votre besoin</div>\n'
+    +'        <label>Message (optionnel)</label>\n'
+    +'        <textarea id="msg" placeholder="Décrivez votre besoin..."></textarea>\n'
+    +'        <button class="btn-back" onclick="goStep(2)">← Retour</button>\n'
+    +'        <button class="btn-next" onclick="goStep4()">Voir le récapitulatif →</button>\n'
+    +'      </div>\n'
+    +'      <div class="step" id="s4">\n'
+    +'        <div class="form-title">Récapitulatif</div>\n'
+    +'        <div class="summary-box">\n'
+    +'          <div class="sum-row"><span class="sum-label">Nom</span><span class="sum-val" id="r-nom"></span></div>\n'
+    +'          <div class="sum-row"><span class="sum-label">Prénom</span><span class="sum-val" id="r-prenom"></span></div>\n'
+    +'          <div class="sum-row"><span class="sum-label">Téléphone</span><span class="sum-val" id="r-tel"></span></div>\n'
+    +'          <div class="sum-row"><span class="sum-label">Services</span><div class="pills" id="r-svcs"></div></div>\n'
+    +'          <div class="sum-row"><span class="sum-label">Message</span><span class="sum-val" id="r-msg"></span></div>\n'
+    +'        </div>\n'
+    +'        <button class="btn-back" onclick="goStep(3)">← Modifier</button>\n'
+    +'        <button class="wa-btn" onclick="sendWA()">'
+    +'<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>'
+    +' Envoyer sur WhatsApp</button>\n'
+    +'      </div>\n'
+    +'      <div class="step" id="s5">\n'
+    +'        <div class="success-inner">\n'
+    +'          <div class="check-circle">✓</div>\n'
+    +'          <div class="form-title" style="text-align:center;">Demande envoyée !</div>\n'
+    +'          <p style="color:var(--slate);font-size:0.85rem;line-height:1.7;margin-top:0.5rem;">Votre message a été transmis via WhatsApp. '+esc(nom)+' vous contactera très prochainement.</p>\n'
+    +'          <button class="btn-next" style="margin-top:1.5rem;" onclick="resetForm()">Nouvelle demande</button>\n'
+    +'        </div>\n'
+    +'      </div>\n'
+    +'    </div>\n'
+    +'  </div>\n'
+    +'</section>\n\n'
+    +'<section class="contact-section" id="contact">\n'
+    +'  <div style="text-align:center;"><div class="section-label">Nous joindre</div><div class="section-title">Contact</div></div>\n'
+    +'  <div class="contact-grid">\n'
+    +'    <div class="contact-card-item"><div class="c-icon">👤</div><div><div class="c-lbl">Responsable</div><div class="c-val">'+esc(nom)+'</div></div></div>\n'
+    +'    <div class="contact-card-item"><div class="c-icon">📱</div><div><div class="c-lbl">Téléphone / WhatsApp</div><div class="c-val">'+esc(tel)+'</div></div></div>\n'
+    +'    <div class="contact-card-item"><div class="c-icon">✉️</div><div><div class="c-lbl">Email</div><div class="c-val">'+esc(email)+'</div></div></div>\n'
+    +'    <div class="contact-card-item" style="grid-column:1/-1;justify-content:center;">\n'
+    +'      <a href="'+wa+'" style="display:flex;align-items:center;gap:0.6rem;background:#25D366;color:#fff;padding:0.85rem 2rem;border-radius:30px;text-decoration:none;font-weight:700;font-size:0.9rem;">'
+    +'<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>'
+    +' Écrire sur WhatsApp</a>\n'
+    +'    </div>\n'
+    +'  </div>\n'
+    +'</section>\n\n'
+    +'<footer>\n'
+    +'  <a href="#" class="logo">TA <span>Électronique</span></a>\n'
+    +'  <p>© 2025 TA Électronique — Tous droits réservés</p>\n'
+    +'</footer>\n\n'
+    +'<div class="lb-overlay" id="lb" onclick="closeLB()">\n'
+    +'  <span class="lb-close" onclick="closeLB()">✕</span>\n'
+    +'  <img id="lb-img" src="" alt="">\n'
+    +'</div>\n\n'
+    +'<script>\n'
+    +'  var svcs=[];\n'
+    +'  function goStep(n){document.querySelectorAll(".step").forEach(function(s){s.classList.remove("active");});document.getElementById("s"+n).classList.add("active");for(var i=1;i<=4;i++){var d=document.getElementById("d"+i);if(d){d.className="dot"+(i<n?" done":i==n?" active":"");}}}\n'
+    +'  function goStep2(){var n=document.getElementById("nom").value.trim();var p=document.getElementById("prenom").value.trim();var t=document.getElementById("tel").value.trim();document.getElementById("err-nom").style.display=n?"none":"block";document.getElementById("err-prenom").style.display=p?"none":"block";document.getElementById("err-tel").style.display=(t&&t.length>=9)?"none":"block";if(!n||!p||!t||t.length<9)return;goStep(2);}\n'
+    +'  function goStep3(){document.getElementById("err-svc").style.display=svcs.length?"none":"block";if(!svcs.length)return;goStep(3);}\n'
+    +'  function goStep4(){document.getElementById("r-nom").textContent=document.getElementById("nom").value.trim();document.getElementById("r-prenom").textContent=document.getElementById("prenom").value.trim();document.getElementById("r-tel").textContent=document.getElementById("tel").value.trim();var sc=document.getElementById("r-svcs");sc.innerHTML="";svcs.forEach(function(s){var p=document.createElement("span");p.className="pill";p.textContent=s;sc.appendChild(p);});var m=document.getElementById("msg").value.trim();document.getElementById("r-msg").textContent=m||"Aucun";goStep(4);}\n'
+    +'  function toggleSvc(el,name){el.classList.toggle("selected");if(el.classList.contains("selected")){svcs.push(name);}else{svcs=svcs.filter(function(s){return s!==name;});}}\n'
+    +'  function sendWA(){var n=document.getElementById("nom").value.trim();var p=document.getElementById("prenom").value.trim();var t=document.getElementById("tel").value.trim();var m=document.getElementById("msg").value.trim();var txt="Bonjour TA Électronique 👋\\n\\n*Nouvelle demande*\\n\\n👤 *Nom :* "+n+" "+p+"\\n📱 *Tél :* "+t+"\\n🔧 *Services :*\\n";svcs.forEach(function(s){txt+="  • "+s+"\\n";});if(m){txt+="\\n💬 *Message :*\\n"+m;}txt+="\\n\\n_Envoyé depuis le site TA Électronique_";window.open("'+wa+'?text="+encodeURIComponent(txt),"_blank");goStep(5);}\n'
+    +'  function resetForm(){svcs=[];["nom","prenom","tel","msg"].forEach(function(id){document.getElementById(id).value="";});document.querySelectorAll(".svc-btn").forEach(function(b){b.classList.remove("selected");});goStep(1);}\n'
+    +'  function openLB(el){var src=el.querySelector("img").src;document.getElementById("lb-img").src=src;document.getElementById("lb").classList.add("open");}\n'
+    +'  function closeLB(){document.getElementById("lb").classList.remove("open");}\n'
+    +'<\/script>\n'
+    +'</body>\n</html>';
+
+  return html;
+}
+
+function dlSite(){
+  var html = buildHTML();
+  var blob = new Blob([html], {type:'text/html'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ta-electronique.html';
+  a.click();
+}
+
+function publishSite(){
+  var html = buildHTML();
+  var btn = document.getElementById('pub-btn');
+  var status = document.getElementById('pub-status');
+  btn.disabled = true;
+  btn.textContent = '⏳ Publication en cours...';
+  status.style.display = 'none';
+
+  var SITE_ID = '2e143b0b-a837-4d9c-91a2-bfc02528f438';
+  var TOKEN = 'nfp_f5nuV4rGMPNrBBvRirUHSfPM3K9tj25A06ac';
+
+  // Build zip with JSZip
+  var script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+  script.onload = function(){
+    var zip = new JSZip();
+    zip.file('index.html', html);
+    zip.generateAsync({type:'blob', compression:'DEFLATE'}).then(function(zipBlob){
+      var formData = new FormData();
+      formData.append('file', zipBlob, 'site.zip');
+
+      fetch('https://api.netlify.com/api/v1/sites/'+SITE_ID+'/deploys', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer '+TOKEN,
+          'Content-Type': 'application/zip'
+        },
+        body: zipBlob
+      })
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        btn.disabled = false;
+        btn.textContent = '🚀 Publier sur Netlify';
+        if(data.id){
+          status.style.background = 'rgba(37,211,102,0.1)';
+          status.style.border = '1px solid rgba(37,211,102,0.3)';
+          status.style.color = '#25D366';
+          status.textContent = '✅ Site publié avec succès ! Visible sur ta-electronique.netlify.app';
+        } else {
+          status.style.background = 'rgba(255,77,77,0.1)';
+          status.style.border = '1px solid rgba(255,77,77,0.3)';
+          status.style.color = '#ff4d4d';
+          status.textContent = '❌ Erreur : ' + (data.message||'Réessayez');
+        }
+        status.style.display = 'block';
+      })
+      .catch(function(err){
+        btn.disabled = false;
+        btn.textContent = '🚀 Publier sur Netlify';
+        status.style.background = 'rgba(255,77,77,0.1)';
+        status.style.border = '1px solid rgba(255,77,77,0.3)';
+        status.style.color = '#ff4d4d';
+        status.textContent = '❌ Erreur réseau. Vérifiez votre connexion.';
+        status.style.display = 'block';
+      });
+    });
+  };
+  document.head.appendChild(script);
+}
+
+function initAdmin(){
+  renderSvcs();
+  renderPhotos();
+}
+</script>
+</body>
+</html>
